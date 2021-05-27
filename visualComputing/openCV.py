@@ -1,6 +1,8 @@
 import numpy as np
 import cv2 as cv
 
+# teste realizado para reconhecer rosto de uma imagem
+
 path = cv.data.haarcascades + 'haarcascade_frontalface_default.xml' 
 face_classifier = cv.CascadeClassifier(path)
 # teste = face_classifier.load(path)
