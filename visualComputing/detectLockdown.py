@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+import timeit
 from datetime import date
 
 import cv2 as cv
@@ -11,17 +12,16 @@ slash=s_type.type_slash()
 
 def extractImages(video, imgDirectory = 'frames'):
     count = 0
-    fps = 1  
-    # quantidade de frames capturados por segundo do video... ava anderson
-    # imgDirectory = imgDirectory + slash + date.today()
-    imgDirectory = imgDirectory + slash + video.replace('video'+slash,'').replace('.mp4','')
+    fps = 30  
+    # imgDirectory = imgDirectory + '\\' + date.today()
+    imgDirectory = imgDirectory + slash + video.replace('video\\','').replace('.mp4','')
+    print(cv.data.haarcascades)
     path = cv.data.haarcascades + 'haarcascade_frontalface_default.xml' 
     face_classifier = cv.CascadeClassifier(path)
-    teste = face_classifier.load(path)
-    if not teste:
+    load = face_classifier.load(path)
+    if not load:
         print("erro ao carregar modelo")
-        
-    os.makedirs(imgDirectory, exist_ok=True)
+
     os.makedirs(imgDirectory+slash+'lockdown', exist_ok=True)
     vidcap = cv.VideoCapture(video)
     success = True
@@ -31,6 +31,8 @@ def extractImages(video, imgDirectory = 'frames'):
         if success:
             cv.imwrite( imgDirectory+slash+"frame%f.jpg" % count, frame)
             print("frame original salvo")
+            # cv.imwrite( imgDirectory + "\\frame%f.jpg" % count, frame)
+            # print("frame original salvo")
             
             image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
             faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
@@ -44,4 +46,8 @@ def extractImages(video, imgDirectory = 'frames'):
 a = argparse.ArgumentParser()
 args = a.parse_args()
 print(args)
-extractImages('video'+slash+'Festival-cultura-japonesa-SP.mp4')
+# extractImages('video'+slash+'Festival-cultura-japonesa-SP.mp4')
+inicio = timeit.default_timer()
+extractImages('video'+slash+'yt1s.com-cctv1.mp44')
+fim = timeit.default_timer()
+print ('duracao: %f' % (fim - inicio))
