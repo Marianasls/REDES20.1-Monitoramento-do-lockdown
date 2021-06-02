@@ -14,8 +14,8 @@ def extractImages(video, imgDirectory = 'frames'):
     count = 0
     fps = 10 
     print(video)
-    # imgDirectory = imgDirectory + '\\' + date.today()
-    imgDirectory = imgDirectory + slash + video.replace('video\\','').replace('.mp4','')
+    # imgDirectory = imgDirectory + slash + date.today()
+    imgDirectory = imgDirectory + slash + video.replace('video'+slash,'').replace('.mp4','')
     print(cv.data.haarcascades)
     path = cv.data.haarcascades + 'haarcascade_frontalface_default.xml' 
     # path = cv.data.haarcascades + 'haarcascade_fullbody.xml' 
@@ -44,16 +44,25 @@ def extractImages(video, imgDirectory = 'frames'):
                         cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
                     cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
                     print("Quebra de lockdown detectada: frame salvo")
+                '''
+                # boddy_classifier 
+                bodies = face_classifier.detectMultiScale(image_gray, 1.1, 3)
+                if len(bodies) > 0:
+                    for (x,y,w,h) in bodies:
+                        cv.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 255), 2)
+                    cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
+                    print("Quebra de lockdown detectada: frame salvo")
+                '''
                 inicio = timeit.default_timer()
-            count = count + 1/fps
+                count = count + 1/fps
         else:
             print("Falha ao abrir o video")
             
 def extractImagesByFps(video, taxadeQuadros = 27, pularFrames = 1, imgDirectory = 'frames'):
     count = 0
     print(video)
-    # imgDirectory = imgDirectory + '\\' + date.today()
-    imgDirectory = imgDirectory + slash + video.replace('video\\','').replace('.mp4','')
+    # imgDirectory = imgDirectory + slash + date.today()
+    imgDirectory = imgDirectory + slash + video.replace('video'+slash,'').replace('.mp4','')
     print(cv.data.haarcascades)
     path = cv.data.haarcascades + 'haarcascade_frontalface_default.xml' 
     # path = cv.data.haarcascades + 'haarcascade_fullbody.xml' 
@@ -94,8 +103,8 @@ a = argparse.ArgumentParser()
 args = a.parse_args()
 print(args)
 inicio = timeit.default_timer()
-# extractImages('video'+slash+'Festival-cultura-japonesa-SP.mp4')
-extractImagesByFps('video'+slash+'Festival-cultura-japonesa-SP.mp4', 30,1)
+extractImages('video'+slash+'Festival-cultura-japonesa-SP.mp4')
+# extractImagesByFps('video'+slash+'Festival-cultura-japonesa-SP.mp4', 30,1)
 #extractImagesByFps('video'+slash+'yt1s.com-cctv1.mp4', 30)
 fim = timeit.default_timer()
 print ('duracao: %f' % (fim - inicio))
