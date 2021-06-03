@@ -12,7 +12,7 @@ class Mqtt:
         self.ID = ID
         self.user = user
         self.passwd = passwd
-        self.client = mqttPaho.Client(ID, False)
+        self.client = mqttPaho.Client(ID, True)
         self.client.username_pw_set(user, passwd)
         self.topic = topic
         self.receiveMsg = False
@@ -33,7 +33,7 @@ class Mqtt:
             time.sleep(1)
 
         # Send data 
-        message = json.dumps({"headers": message})
+        message = json.dumps(message)
         ret = self.client.publish(self.topic, message, 0, retain=rt)   #using qoS-0 
         logging.info("published return="+str(ret))
         
@@ -45,7 +45,7 @@ class Mqtt:
             self.topic = path
         # self.client.connect(self.host, self.port)
         # self.client.loop_start()
-        self.client.subscribe(self.topic + '/response', 0) #qoS-0
+        self.client.subscribe(self.topic, 0) #qoS-0
 
     # create functions for callback
     def on_log(self, client, userdata, level, buf):
@@ -84,7 +84,7 @@ class Mqtt:
     # já devolve o payload da mensagem
     def requestRecv(self, stop=True):
         # sub = self.getSUB()
-        self.requestSub()
+        self.subscribe()
         return self.requestRecvSub(stop).payload
     
     def requestRecvSub(self, stop=True):

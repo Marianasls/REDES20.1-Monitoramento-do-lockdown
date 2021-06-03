@@ -40,11 +40,12 @@ def extractImages(video, mqtt, imgDirectory = 'frames'):
             mqtt.publish("monitoramento/aovivo",json.dumps(frame.tolist()))
             if( decorrido - inicio > 3):
                 image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-                faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
+                # faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
+                faces = []
                 if len(faces) > 0:
                     for(x,y,w,h) in faces:
                         cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
-                    cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
+                    # cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
                     mqtt.publish("monitoramento/lockdown",json.dumps(frame.tolist()))
                     print("Quebra de lockdown detectada: frame salvo")
                 '''
@@ -89,15 +90,15 @@ def extractImagesByFps(video, mqtt, taxadeQuadros = 27, pularFrames = 1, imgDire
                 print ('duracao: %f' % (fim - inicioP))
             
             decorrido = timeit.default_timer()
-            mqtt.publish("monitoramento/aovivo",json.dumps(frame.tolist()))
+            mqtt.publish("/monitoramento/aovivo",json.dumps(frame.tolist()))
             if( decorrido - inicio > 3):
                 image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
                 faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
                 if len(faces) > 0:
                     for(x,y,w,h) in faces:
                         cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
-                    cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
-                    mqtt.publish("monitoramento/lockdown",json.dumps(frame.tolist()))
+                    # cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
+                    mqtt.publish("/monitoramento/lockdown",json.dumps(frame.tolist()))
                     print("Quebra de lockdown detectada: frame salvo")
                 inicio = timeit.default_timer()
             count = count + pularFrames
@@ -114,3 +115,4 @@ extractImages('video'+slash+'Festival-cultura-japonesa-SP.mp4', mqtt)
 #extractImagesByFps('video'+slash+'yt1s.com-cctv1.mp4', mqtt, 30)
 fim = timeit.default_timer()
 print ('duracao: %f' % (fim - inicio))
+sys.exit()
