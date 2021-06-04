@@ -18,7 +18,7 @@ import io
 from imutils import opencv2matplotlib
 from PIL import Image
 
-configFile=os.path.dirname(os.path.realpath(__file__))+"visualComputing/config/config.json"
+configFile=os.path.dirname(os.path.realpath(__file__))+"/config/config.json"
 CONFIG = json.loads(open(configFile, 'r').read())
 
 def openClassifier():
@@ -32,7 +32,7 @@ def openClassifier():
     return classifier
 
 def useVideoCapture(imgDirectory):
-    video = 'visualComputing'+slash+'video'+slash+'Festival-cultura-japonesa-SP.mp4'
+    video = 'video'+slash+'Festival-cultura-japonesa-SP.mp4'
     print(video)
     imgDirectory = imgDirectory + slash + video.replace('video'+slash,'').replace('.mp4','')
     os.makedirs(imgDirectory+slash+'lockdown', exist_ok=True)
@@ -88,7 +88,7 @@ def extractImages(mqtt, imgDirectory = 'frames'):
         # cv.imwrite( imgDirectory+slash+"frame%f.jpg" % count, frame)
         decorrido = timeit.default_timer()
         message = imageToPublishableObj(frame)
-        mqtt.publisher(CONFIG['topics']['aovivo'], message )
+        mqtt.publisher(CONFIG['topics']['aovivo'], message, CONFIG['mqtt']['qos'] )
         #print("frame publicado no topico: ", CONFIG['topics']['aovivo'])
 
         if( decorrido - inicio > 3):
@@ -100,7 +100,7 @@ def extractImages(mqtt, imgDirectory = 'frames'):
                 cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
                 message = imageToPublishableObj(frame)
                 mqtt.publisher(CONFIG['topics']['lockdown'], message, CONFIG['mqtt']['qos'] )
-                print("Quebra de lockdown detectada publicada no topico: ", CONFIG['topics']['aovivo'] )
+                print("Quebra de lockdown detectada publicada no topico: ", CONFIG['topics']['lockdown'] )
 
             '''
             # boddy_classifier 
@@ -155,7 +155,7 @@ def extractImagesByFps(mqtt, taxadeQuadros = 27, pularFrames = 1, imgDirectory =
         
         decorrido = timeit.default_timer()
         message = imageToPublishableObj(frame)
-        mqtt.publisher(CONFIG['topics']['aovivo'], message )
+        mqtt.publisher(CONFIG['topics']['aovivo'], message, CONFIG['mqtt']['qos'] )
         if( decorrido - inicio > 3):
             image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
             faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
@@ -165,7 +165,7 @@ def extractImagesByFps(mqtt, taxadeQuadros = 27, pularFrames = 1, imgDirectory =
                 # cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
                 message = imageToPublishableObj(frame)
                 mqtt.publisher(CONFIG['topics']['lockdown'], message, CONFIG['mqtt']['qos'] )
-                print("Quebra de lockdown detectada publicada no topico: ", CONFIG['topics']['aovivo'] )
+                print("Quebra de lockdown detectada publicada no topico: ", CONFIG['topics']['lockdown'] )
             inicio = timeit.default_timer()
         count = fps._numFrames + pularFrames
 

@@ -35,7 +35,7 @@ class Mqtt:
         # Send data 
         message = json.dumps(message)
         ret = self.client.publish(self.topic, message, qos, retain=rt)   #using qoS-0 
-        logging.info("published return="+str(ret))
+        logging.info(self.topic+" published return="+str(ret))
         
         # self.client.loop_stop()
         # self.client.disconnect()
