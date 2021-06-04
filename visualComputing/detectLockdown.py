@@ -3,116 +3,187 @@ import sys
 import os
 import argparse
 import timeit
-from datetime import date
+import datetime
+import time
 from mqtt.Mqtt import Mqtt
 import cv2 as cv
 print(cv.__version__)
 
 import systemType as s_type
 slash=s_type.type_slash()
+from imutils.video import VideoStream
+from imutils.video import FPS
+import imutils
+import io
+from imutils import opencv2matplotlib
+from PIL import Image
 
-def extractImages(video, mqtt, imgDirectory = 'frames'):
-    count = 0
-    fps = 0.5
-    print(video)
-    # imgDirectory = imgDirectory + slash + date.today()
-    imgDirectory = imgDirectory + slash + video.replace('video'+slash,'').replace('.mp4','')
+configFile=os.path.dirname(os.path.realpath(__file__))+"visualComputing/config/config.json"
+CONFIG = json.loads(open(configFile, 'r').read())
+
+def openClassifier():
     print(cv.data.haarcascades)
     path = cv.data.haarcascades + 'haarcascade_frontalface_default.xml' 
     # path = cv.data.haarcascades + 'haarcascade_fullbody.xml' 
-    face_classifier = cv.CascadeClassifier(path)
-    load = face_classifier.load(path)
+    classifier = cv.CascadeClassifier(path)
+    load = classifier.load(path)
     if not load:
         print("erro ao carregar modelo")
+    return classifier
 
+def useVideoCapture(imgDirectory):
+    video = 'visualComputing'+slash+'video'+slash+'Festival-cultura-japonesa-SP.mp4'
+    print(video)
+    imgDirectory = imgDirectory + slash + video.replace('video'+slash,'').replace('.mp4','')
     os.makedirs(imgDirectory+slash+'lockdown', exist_ok=True)
-    vidcap = cv.VideoCapture(video)
+    return cv.VideoCapture(video)
+
+def useVideoStream(imgDirectory):
+    imgDirectory = imgDirectory + slash + 'real_time_face_detection'
+    os.makedirs(imgDirectory+slash+'lockdown', exist_ok=True)
+
+    # inicializa o stream de video pela câmera 
+    print("[INFO] starting video stream...")
+    vs = VideoStream(src=0).start()
+    time.sleep(2.0)
+    return vs 
+
+def pil_image_to_byte_array(image):
+    imgByteArr = io.BytesIO()
+    image.save(imgByteArr, "PNG")
+    return imgByteArr.getvalue()
+
+def get_now_string():
+    return datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S.%f")
+
+def imageToPublishableObj(frame):
+    np_array_RGB = opencv2matplotlib(frame)
+    image = Image.fromarray(np_array_RGB)
+    byte_array = pil_image_to_byte_array(image)
+    return {'date': get_now_string(), 'data': str(byte_array) }
+
+def extractImages(mqtt, imgDirectory = 'frames'):
+    face_classifier = openClassifier()
+    count = 0
     success = True
     inicio = timeit.default_timer()
-    while success:
-        vidcap.set(cv.CAP_PROP_POS_MSEC,(count *1000))
-        success,frame = vidcap.read()
-        if success:
-            # cv.imwrite( imgDirectory+slash+"frame%f.jpg" % count, frame)
-            # print("frame original salvo")
-            
-            decorrido = timeit.default_timer()
-            mqtt.publish("monitoramento/aovivo",json.dumps(frame.tolist()))
-            if( decorrido - inicio > 3):
-                image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-                # faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
-                faces = []
-                if len(faces) > 0:
-                    for(x,y,w,h) in faces:
-                        cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
-                    # cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
-                    mqtt.publish("monitoramento/lockdown",json.dumps(frame.tolist()))
-                    print("Quebra de lockdown detectada: frame salvo")
-                '''
-                # boddy_classifier 
-                bodies = face_classifier.detectMultiScale(image_gray, 1.1, 3)
-                if len(bodies) > 0:
-                    for (x,y,w,h) in bodies:
-                        cv.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 255), 2)
-                    cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
-                    print("Quebra de lockdown detectada: frame salvo")
-                '''
-                inicio = timeit.default_timer()
-                count = count + 1/fps
-        else:
-            print("Falha ao abrir o video")
-            
-def extractImagesByFps(video, mqtt, taxadeQuadros = 27, pularFrames = 1, imgDirectory = 'frames'):
-    count = 0
-    print(video)
-    # imgDirectory = imgDirectory + slash + date.today()
-    imgDirectory = imgDirectory + slash + video.replace('video'+slash,'').replace('.mp4','')
-    print(cv.data.haarcascades)
-    path = cv.data.haarcascades + 'haarcascade_frontalface_default.xml' 
-    # path = cv.data.haarcascades + 'haarcascade_fullbody.xml' 
-    face_classifier = cv.CascadeClassifier(path)
-    load = face_classifier.load(path)
-    if not load:
-        print("erro ao carregar modelo")
 
-    os.makedirs(imgDirectory+slash+'lockdown', exist_ok=True)
-    vidcap = cv.VideoCapture(video)
+    if args.type == 1:
+        video = useVideoCapture(imgDirectory)
+    else: 
+        video = useVideoStream(imgDirectory)
+    fps = FPS().start()
+
+    while success:
+        if args.type == 1:
+            video.set(cv.CAP_PROP_POS_MSEC,(count *1000))
+            success,frame = video.read()
+            if not success:
+                print("Falha ao abrir o video")
+                continue
+        else : 
+            frame = video.read()
+            frame = imutils.resize(frame, width=400)
+
+        # cv.imwrite( imgDirectory+slash+"frame%f.jpg" % count, frame)
+        decorrido = timeit.default_timer()
+        message = imageToPublishableObj(frame)
+        mqtt.publisher(CONFIG['topics']['aovivo'], message )
+        #print("frame publicado no topico: ", CONFIG['topics']['aovivo'])
+
+        if( decorrido - inicio > 3):
+            image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+            faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
+            if len(faces) > 0:
+                for(x,y,w,h) in faces:
+                    cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
+                cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
+                message = imageToPublishableObj(frame)
+                mqtt.publisher(CONFIG['topics']['lockdown'], message, CONFIG['mqtt']['qos'] )
+                print("Quebra de lockdown detectada publicada no topico: ", CONFIG['topics']['aovivo'] )
+
+            '''
+            # boddy_classifier 
+            bodies = face_classifier.detectMultiScale(image_gray, 1.1, 3)
+            if len(bodies) > 0:
+                for (x,y,w,h) in bodies:
+                    cv.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 255), 2)
+                cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
+                print("Quebra de lockdown detectada: frame salvo")
+            '''
+            inicio = timeit.default_timer()
+            count = fps._numFrames
+
+        key = cv.waitKey(1) & 0xFF
+        # se a tecla q for pressionada, quebra o loop
+        if key == ord("q"):
+            break
+        fps.update()
+
+    fps.stop()
+    print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
+    print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+            
+def extractImagesByFps(mqtt, taxadeQuadros = 27, pularFrames = 1, imgDirectory = 'frames'):
+    face_classifier = openClassifier()
+    count = 0
     success = True
     inicioP = timeit.default_timer()
     inicio = inicioP
+
+    if args.type == 1:
+        video = useVideoCapture(imgDirectory)
+    else: 
+        video = useVideoStream(imgDirectory)
+    fps = FPS().start()
+
     while success:
-        vidcap.set(cv.CAP_PROP_POS_FRAMES, count) 
-        success,frame = vidcap.read()
-        if success:
-            if count % (taxadeQuadros*60) == 0:
-                print(str(count) + ' frames lidos.')
-                fim = timeit.default_timer()
-                print ('duracao: %f' % (fim - inicioP))
-            
-            decorrido = timeit.default_timer()
-            mqtt.publish("/monitoramento/aovivo",json.dumps(frame.tolist()))
-            if( decorrido - inicio > 3):
-                image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-                faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
-                if len(faces) > 0:
-                    for(x,y,w,h) in faces:
-                        cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
-                    # cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
-                    mqtt.publish("/monitoramento/lockdown",json.dumps(frame.tolist()))
-                    print("Quebra de lockdown detectada: frame salvo")
-                inicio = timeit.default_timer()
-            count = count + pularFrames
-        else:
-            print("Falha ao abrir o video")
+        if args.type == 1:
+            video.set(cv.CAP_PROP_POS_FRAMES, count)
+            success,frame = video.read()
+            if not success:
+                print("Falha ao abrir o video")
+                continue
+        else : 
+            frame = video.read()
+            frame = imutils.resize(frame, width=400)
+
+        if count % (taxadeQuadros*60) == 0:
+            print(str(count) + ' frames lidos.')
+            fim = timeit.default_timer()
+            print ('duracao: %f' % (fim - inicioP))
+        
+        decorrido = timeit.default_timer()
+        message = imageToPublishableObj(frame)
+        mqtt.publisher(CONFIG['topics']['aovivo'], message )
+        if( decorrido - inicio > 3):
+            image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+            faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
+            if len(faces) > 0:
+                for(x,y,w,h) in faces:
+                    cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
+                # cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
+                message = imageToPublishableObj(frame)
+                mqtt.publisher(CONFIG['topics']['lockdown'], message, CONFIG['mqtt']['qos'] )
+                print("Quebra de lockdown detectada publicada no topico: ", CONFIG['topics']['aovivo'] )
+            inicio = timeit.default_timer()
+        count = fps._numFrames + pularFrames
+
+        key = cv.waitKey(1) & 0xFF
+        # se a tecla q for pressionada, quebra o loop
+        if key == ord("q"):
+            break
+        fps.update()
+    fps.stop()
+
 
 a = argparse.ArgumentParser()
+a.add_argument("-t", "--type", help="1 para detecção por video e 2 para detecção por camera", default=1)
 args = a.parse_args()
-print(args)
 inicio = timeit.default_timer()
-mqtt = Mqtt("node02.myqtthub.com", 1883, "camera1", "tombacity", "tombacity")
-extractImages('video'+slash+'Festival-cultura-japonesa-SP.mp4', mqtt)
-# extractImagesByFps('video'+slash+'Festival-cultura-japonesa-SP.mp4', mqtt, 30,1)
-#extractImagesByFps('video'+slash+'yt1s.com-cctv1.mp4', mqtt, 30)
+mqtt = Mqtt(CONFIG['mqtt']['host'], CONFIG['mqtt']['port'], CONFIG['mqtt']['device_id'], CONFIG['mqtt']['device_username'], CONFIG['mqtt']['device_password'])
+extractImages(mqtt)
+# extractImagesByFps(mqtt, 30)
 fim = timeit.default_timer()
 print ('duracao: %f' % (fim - inicio))
 sys.exit()

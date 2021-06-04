@@ -1,0 +1,14 @@
+{
+    "mqtt": {
+        "host": "node02.myqtthub.com",
+        "port": 1883,
+        "device_id": "camera1",
+        "device_username": "tombacity",
+        "device_password": "tombacity",
+        "qos": 1
+    },
+    "topics": {
+        "aovivo": "monitoramento/aovivo",
+        "lockdown": "monitoramento/lockdown" 
+    }
+}

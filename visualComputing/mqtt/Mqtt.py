@@ -25,7 +25,7 @@ class Mqtt:
         self.client.connect(self.host, self.port)
         self.client.loop_start()
 
-    def publish(self, path= None, message="", rt=False):
+    def publisher(self, path= None, message={}, qos=0, rt=False):
         if path != None:
             self.topic = path
 
@@ -34,13 +34,13 @@ class Mqtt:
 
         # Send data 
         message = json.dumps(message)
-        ret = self.client.publish(self.topic, message, 0, retain=rt)   #using qoS-0 
+        ret = self.client.publish(self.topic, message, qos, retain=rt)   #using qoS-0 
         logging.info("published return="+str(ret))
         
         # self.client.loop_stop()
         # self.client.disconnect()
         
-    def subscribe(self, path=None):
+    def subscriber(self, path=None):
         if path != None:
             self.topic = path
         # self.client.connect(self.host, self.port)
