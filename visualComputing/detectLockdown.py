@@ -32,7 +32,7 @@ def openClassifier():
     return classifier
 
 def useVideoCapture(imgDirectory):
-    video = 'video'+slash+'Festival-cultura-japonesa-SP.mp4'
+    video = 'video'+slash+CONFIG['video']
     print(video)
     imgDirectory = imgDirectory + slash + video.replace('video'+slash,'').replace('.mp4','')
     os.makedirs(imgDirectory+slash+'lockdown', exist_ok=True)
@@ -62,20 +62,20 @@ def imageToPublishableObj(frame):
     byte_array = pil_image_to_byte_array(image)
     return {'date': get_now_string(), 'data': str(byte_array) }
 
-def extractImages(mqtt, imgDirectory = 'frames'):
+def extractImages(mqtt, type=1, imgDirectory = 'frames'):
     face_classifier = openClassifier()
     count = 0
     success = True
     inicio = timeit.default_timer()
 
-    if args.type == 1:
+    if type == 1:
         video = useVideoCapture(imgDirectory)
     else: 
         video = useVideoStream(imgDirectory)
     fps = FPS().start()
 
     while success:
-        if args.type == 1:
+        if type == 1:
             video.set(cv.CAP_PROP_POS_MSEC,(count *1000))
             success,frame = video.read()
             if not success:
@@ -124,21 +124,21 @@ def extractImages(mqtt, imgDirectory = 'frames'):
     print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
             
-def extractImagesByFps(mqtt, taxadeQuadros = 27, pularFrames = 1, imgDirectory = 'frames'):
+def extractImagesByFps(mqtt, type=1, taxadeQuadros = 27, pularFrames = 1, imgDirectory = 'frames'):
     face_classifier = openClassifier()
     count = 0
     success = True
     inicioP = timeit.default_timer()
     inicio = inicioP
 
-    if args.type == 1:
+    if type == 1:
         video = useVideoCapture(imgDirectory)
     else: 
         video = useVideoStream(imgDirectory)
     fps = FPS().start()
 
     while success:
-        if args.type == 1:
+        if type == 1:
             video.set(cv.CAP_PROP_POS_FRAMES, count)
             success,frame = video.read()
             if not success:
@@ -175,15 +175,3 @@ def extractImagesByFps(mqtt, taxadeQuadros = 27, pularFrames = 1, imgDirectory =
             break
         fps.update()
     fps.stop()
-
-
-a = argparse.ArgumentParser()
-a.add_argument("-t", "--type", help="1 para detecção por video e 2 para detecção por camera", default=1)
-args = a.parse_args()
-inicio = timeit.default_timer()
-mqtt = Mqtt(CONFIG['mqtt']['host'], CONFIG['mqtt']['port'], CONFIG['mqtt']['device_id'], CONFIG['mqtt']['device_username'], CONFIG['mqtt']['device_password'])
-extractImages(mqtt)
-# extractImagesByFps(mqtt, 30)
-fim = timeit.default_timer()
-print ('duracao: %f' % (fim - inicio))
-sys.exit()
