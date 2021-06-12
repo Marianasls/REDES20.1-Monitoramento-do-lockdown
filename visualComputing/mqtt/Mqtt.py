@@ -33,7 +33,7 @@ class Mqtt:
             time.sleep(1)
 
         # Send data 
-        message = json.dumps(message)
+        # message = json.dumps(message)
         ret = self.client.publish(self.topic, message, qos, retain=rt) 
         logging.info(self.topic+" published return="+str(ret))
         
@@ -84,7 +84,7 @@ class Mqtt:
     # já devolve o payload da mensagem
     def requestRecv(self, stop=True):
         # sub = self.getSUB()
-        self.subscribe()
+        self.subscriber()
         return self.requestRecvSub(stop).payload
     
     def requestRecvSub(self, stop=True):

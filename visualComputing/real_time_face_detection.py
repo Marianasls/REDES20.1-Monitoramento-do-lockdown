@@ -9,9 +9,9 @@ print(cv.__version__)
 import systemType as s_type
 slash=s_type.type_slash()
 
+import imutils
 from imutils.video import VideoStream
 from imutils.video import FPS
-import imutils
 
 
 def extractImages(imgDirectory = 'frames'):

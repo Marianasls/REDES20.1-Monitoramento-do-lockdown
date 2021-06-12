@@ -57,8 +57,10 @@ def get_now_string():
     return datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S.%f")
 
 def imageToPublishableObj(frame):
+    # return frame.tolist()
     np_array_RGB = opencv2matplotlib(frame)
     image = Image.fromarray(np_array_RGB)
+    return pil_image_to_byte_array(image)
     byte_array = pil_image_to_byte_array(image)
     return {'date': get_now_string(), 'data': str(byte_array) }
 
@@ -76,20 +78,22 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
 
     while success:
         if type == 1:
-            video.set(cv.CAP_PROP_POS_MSEC,(count *1000))
+            print(count)
+            video.set(cv.CAP_PROP_POS_MSEC,(count *1000)) #por segundo
+            video.set(cv.CAP_PROP_POS_FRAMES,count)#todos os frames do video
             success,frame = video.read()
             if not success:
                 print("Falha ao abrir o video")
                 continue
         else : 
             frame = video.read()
-            frame = imutils.resize(frame, width=400)
+            frame = imutils.resize(frame, width=600)
 
-        # cv.imwrite( imgDirectory+slash+"frame%f.jpg" % count, frame)
+        cv.imwrite( imgDirectory+slash+"frame%f.jpg" % count, frame)
         decorrido = timeit.default_timer()
         message = imageToPublishableObj(frame)
         mqtt.publisher(CONFIG['topics']['aovivo'], message, CONFIG['mqtt']['qos'] )
-        #print("frame publicado no topico: ", CONFIG['topics']['aovivo'])
+        print("frame publicado no topico: ", CONFIG['topics']['aovivo'])
 
         if( decorrido - inicio > 3):
             image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
@@ -112,8 +116,10 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
                 print("Quebra de lockdown detectada: frame salvo")
             '''
             inicio = timeit.default_timer()
-            count = fps._numFrames
-
+        print(fps._numFrames)
+        count += 2
+        # show the output frame
+        cv.imshow("Frame", frame)
         key = cv.waitKey(1) & 0xFF
         # se a tecla q for pressionada, quebra o loop
         if key == ord("q"):

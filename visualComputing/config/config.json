@@ -5,7 +5,7 @@
         "device_id": "camera2",
         "device_username": "tombacity",
         "device_password": "tombacity",
-        "qos": 1
+        "qos": 0
     },
     "topics": {
         "aovivo": "monitoramento/aovivo",
