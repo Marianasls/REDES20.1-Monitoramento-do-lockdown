@@ -2,7 +2,7 @@ import paho.mqtt.client as mqttPaho
 import time
 import logging
 import json
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 
 class Mqtt:
     
@@ -16,10 +16,10 @@ class Mqtt:
         self.client.username_pw_set(user, passwd)
         self.topic = topic
         self.receiveMsg = False
-        self.client.on_log = self.on_log
+        # self.client.on_log = self.on_log
         self.client.on_connect = self.on_connect
-        self.client.on_disconnect = self.on_disconnect
-        self.client.on_publish = self.on_publish  
+        # self.client.on_disconnect = self.on_disconnect
+        # self.client.on_publish = self.on_publish  
         self.client.on_message = self.on_message    
         mqttPaho.Client.connected_flag=False
         self.client.connect(self.host, self.port)
@@ -33,9 +33,9 @@ class Mqtt:
             time.sleep(1)
 
         # Send data 
-        # message = json.dumps(message)
+        message = json.dumps(message)
         ret = self.client.publish(self.topic, message, qos, retain=rt) 
-        logging.info(self.topic+" published return="+str(ret))
+        # logging.info(self.topic+" published return="+str(ret))
         
         # self.client.loop_stop()
         # self.client.disconnect()
@@ -48,32 +48,32 @@ class Mqtt:
         self.client.subscribe(self.topic, 0) #qoS-0
 
     # create functions for callback
-    def on_log(self, client, userdata, level, buf):
-        logging.info(buf)
+    # def on_log(self, client, userdata, level, buf):
+        # logging.info(buf)
 
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
             client.connected_flag=True
         else:
-            logging.info("bad connection returned code="+str(rc))
+            # logging.info("bad connection returned code="+str(rc))
             client.loop_stop()
 
-    def on_disconnect(self, client, userdata, rc):
-        logging.info("client disconnected")
+    # def on_disconnect(self, client, userdata, rc):
+        # logging.info("client disconnected")
 
-    def on_publish(self, client,userdata,mid):            
-        logging.info("data published \n")
+    # def on_publish(self, client,userdata,mid):            
+        # logging.info("data published \n")
    
     # The callback for when a PUBLISH message is received from the server.
     def on_message(self, client, userdata, msg):
         msg.payload = msg.payload.decode("utf-8")
-        logging.info("topico:" + msg.topic)
-        logging.info("mensagem:" + msg.payload)
+        # logging.info("topico:" + msg.topic)
+        # logging.info("mensagem:" + msg.payload)
         msg.payload = json.loads(msg.payload)
         self.msg = msg
         if msg.topic == self.topic:
             self.receiveMsg = True
-            logging.info("mensagem: recebida")
+            # logging.info("mensagem: recebida")
         
     def reset(self):
         ret = self.client.publish(self.topic, "", 0, True)

@@ -17,6 +17,7 @@ import imutils
 import io
 from imutils import opencv2matplotlib
 from PIL import Image
+from ThreadMqtt import ThreadMqtt;
 
 configFile=os.path.dirname(os.path.realpath(__file__))+"/config/config.json"
 CONFIG = json.loads(open(configFile, 'r').read())
@@ -60,7 +61,7 @@ def imageToPublishableObj(frame):
     # return frame.tolist()
     np_array_RGB = opencv2matplotlib(frame)
     image = Image.fromarray(np_array_RGB)
-    return pil_image_to_byte_array(image)
+    # return pil_image_to_byte_array(image)
     byte_array = pil_image_to_byte_array(image)
     return {'date': get_now_string(), 'data': str(byte_array) }
 
@@ -69,7 +70,9 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
     count = 0
     success = True
     inicio = timeit.default_timer()
-
+    # thread = ThreadMqtt(mqtt, CONFIG)
+    # thread.start()
+    
     if type == 1:
         video = useVideoCapture(imgDirectory)
     else: 
@@ -77,22 +80,31 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
     fps = FPS().start()
 
     while success:
+        # time.sleep(0.0001)
         if type == 1:
-            print(count)
-            video.set(cv.CAP_PROP_POS_MSEC,(count *1000)) #por segundo
-            video.set(cv.CAP_PROP_POS_FRAMES,count)#todos os frames do video
+            # inicio = timeit.default_timer()
+            # video.set(cv.CAP_PROP_POS_MSEC,(count *1000)) #por segundo
+            # video.set(cv.CAP_PROP_POS_FRAMES,count)#todos os frames do video
             success,frame = video.read()
             if not success:
                 print("Falha ao abrir o video")
                 continue
+            # fim = timeit.default_timer()
+            # print('duracao da captura do frame pelo video: %f' % (fim - inicio))
         else : 
+            # inicio = timeit.default_timer()
             frame = video.read()
             frame = imutils.resize(frame, width=600)
+            # fim = timeit.default_timer()
+            # print('duracao da captura do frame pela camera: %f' % (fim - inicio))
 
         cv.imwrite( imgDirectory+slash+"frame%f.jpg" % count, frame)
         decorrido = timeit.default_timer()
-        message = imageToPublishableObj(frame)
-        mqtt.publisher(CONFIG['topics']['aovivo'], message, CONFIG['mqtt']['qos'] )
+        # inicio = timeit.default_timer()
+        thread = ThreadMqtt(frame, mqtt, CONFIG)
+        thread.start()
+        # fim = timeit.default_timer()
+        # print('duracao da conversão do frame: %f' % (fim - inicio))
         print("frame publicado no topico: ", CONFIG['topics']['aovivo'])
 
         if( decorrido - inicio > 3):
@@ -102,8 +114,8 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
                 for(x,y,w,h) in faces:
                     cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
                 cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
-                message = imageToPublishableObj(frame)
-                mqtt.publisher(CONFIG['topics']['lockdown'], message, CONFIG['mqtt']['qos'] )
+                thread = ThreadMqtt(frame, mqtt, CONFIG)
+                thread.start()
                 print("Quebra de lockdown detectada publicada no topico: ", CONFIG['topics']['lockdown'] )
 
             '''
@@ -117,7 +129,7 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
             '''
             inicio = timeit.default_timer()
         print(fps._numFrames)
-        count += 2
+        count += 1
         # show the output frame
         cv.imshow("Frame", frame)
         key = cv.waitKey(1) & 0xFF
@@ -157,7 +169,7 @@ def extractImagesByFps(mqtt, type=1, taxadeQuadros = 27, pularFrames = 1, imgDir
         if count % (taxadeQuadros*60) == 0:
             print(str(count) + ' frames lidos.')
             fim = timeit.default_timer()
-            print ('duracao: %f' % (fim - inicioP))
+            print('duracao: %f' % (fim - inicioP))
         
         decorrido = timeit.default_timer()
         message = imageToPublishableObj(frame)
