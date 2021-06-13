@@ -19,3 +19,9 @@ const Route = use('Route')
 Route.get('/', () => {
   return { greeting: 'Hello world in JSON' }
 })
+
+Route.post('/cadastrarTopico', 'TopicoController.cadastrarTopico')
+
+Route.post('/cadastrarSubscriber', 'SubscriberController.cadastrarSubscriber')
+
+Route.post('/cadastrarPublisher', 'PublisherController.cadastrarPublisher')
