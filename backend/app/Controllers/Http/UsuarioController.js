@@ -9,6 +9,19 @@ class UsuarioController {
         const usuario =  Usuario.create(parametros)    
         return usuario
     }
+
+    async designarTopico({request}){
+        const idTopico = request.only(['id_topico'])
+        const email = request.only(['email'])
+        const usuario = Usuario.findOrFail(email)
+        if(usuario){
+            usuario.id_topico = idTopico
+            if(await usuario.save())
+                return usuario
+        }
+        
+       
+    }
 }
 
 module.exports = UsuarioController

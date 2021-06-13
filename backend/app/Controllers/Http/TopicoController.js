@@ -8,6 +8,10 @@ class TopicoController {
         const topico =  Topico.create(parametros)    
         return topico
     }
+
+    exibirTopicos(){
+        return Topico.all()
+    }
 }
 
 module.exports = TopicoController
