@@ -22,6 +22,6 @@ Route.get('/', () => {
 
 Route.post('/cadastrarTopico', 'TopicoController.cadastrarTopico')
 
-Route.post('/cadastrarSubscriber', 'SubscriberController.cadastrarSubscriber')
+Route.post('/cadastrarUsuario', 'UsuarioController.cadastrarUsuario')
 
-Route.post('/cadastrarPublisher', 'PublisherController.cadastrarPublisher')
+Route.post('/login', 'AutenticacaoController.autenticar')
