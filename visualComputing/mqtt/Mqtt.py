@@ -33,7 +33,7 @@ class Mqtt:
             time.sleep(1)
 
         # Send data 
-        message = json.dumps(message)
+        #message = json.dumps(message)
         ret = self.client.publish(self.topic, message, qos, retain=rt) 
         # logging.info(self.topic+" published return="+str(ret))
         

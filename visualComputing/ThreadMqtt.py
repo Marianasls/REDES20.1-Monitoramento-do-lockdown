@@ -7,7 +7,7 @@ import timeit
 import datetime
 import time
 import io
-import detectLockdown as dl
+import saveImage as saveImg
 
 class ThreadMqtt(Thread):
     
@@ -27,7 +27,7 @@ class ThreadMqtt(Thread):
         # return frame.tolist()
         np_array_RGB = opencv2matplotlib(frame)
         image = Image.fromarray(np_array_RGB)
-        # return pil_image_to_byte_array(image)
+        return self.pil_image_to_byte_array(image)
         byte_array = self.pil_image_to_byte_array(image)
         return {'date': self.get_date_string(), 'data': str(byte_array), 'time': self.get_time_string() }
     
