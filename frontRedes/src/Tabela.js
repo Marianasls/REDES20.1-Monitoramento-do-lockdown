@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
@@ -10,10 +10,11 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Dialog from '@material-ui/core/Dialog';
 import Paper from '@material-ui/core/Paper';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
+import Button from '@material-ui/core/Button';
 
 const useRowStyles = makeStyles({
   root: {
@@ -23,26 +24,50 @@ const useRowStyles = makeStyles({
   },
 });
 
-function createData(name, calories, fat, carbs, protein, price) {
-  return {
-    name,
-    calories,
-    fat,
-    carbs,
-    protein,
-    price,
-    history: [
-      { date: '2020-01-05', customerId: '11091700', amount: 3 },
-      { date: '2020-01-02', customerId: 'Anonymous', amount: 1 },
-    ],
+function SimpleDialog(props) {
+  const { onClose, selectedValue, open, imagem } = props;
+  const [teste, setTeste] = React.useState([]);
+  useEffect(() => {
+    setTeste(props);
+    const testando = document.getElementById('imageDialog');
+    console.log(testando);
+    testando.src = imagem;
+  }, [teste, props, imagem]);
+  const handleClose = () => {
+    onClose(selectedValue);
   };
+
+  return (
+    <Dialog onClose={handleClose} aria-labelledby="simple-dialog-title" open={open}>
+        <div style={{ height: '168px', width: '300px'}}>
+          <img id='imageDialog' ng-src={imagem} alt="teste" width='100%' height='100%' />
+        </div>
+    </Dialog>
+  );
 }
 
+SimpleDialog.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  open: PropTypes.bool.isRequired,
+  selectedValue: PropTypes.string.isRequired,
+};
 function Row(props) {
-  const { row } = props;
   const [open, setOpen] = React.useState(false);
+  const [row, setRow] = React.useState('');
+  const [openImage, setOpenImage] = React.useState(false);
   const classes = useRowStyles();
 
+  useEffect(() => {
+    console.log(props);
+    setRow(props);
+  }, [row, props]);
+  const handleClickOpen = () => {
+    setOpenImage(true);
+  };
+
+  const handleClose = (value) => {
+    setOpenImage(false);
+  };
   return (
     <React.Fragment>
       <TableRow className={classes.root}>
@@ -52,45 +77,25 @@ function Row(props) {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-          {row.name}
+          {props.row.topic}
         </TableCell>
-        <TableCell align="right">{row.calories}</TableCell>
-        <TableCell align="right">{row.fat}</TableCell>
-        <TableCell align="right">{row.carbs}</TableCell>
-        <TableCell align="right">{row.protein}</TableCell>
+        <TableCell align="right">{props.row.data}</TableCell>
+        <TableCell align="right">{props.row.hora}</TableCell>
+        <TableCell align="right">{props.row.hora}</TableCell>
+
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box margin={1}>
-              <Typography variant="h6" gutterBottom component="div">
-                History
-              </Typography>
-              <Table size="small" aria-label="purchases">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Customer</TableCell>
-                    <TableCell align="right">Amount</TableCell>
-                    <TableCell align="right">Total price ($)</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {row.history.map((historyRow) => (
-                    <TableRow key={historyRow.date}>
-                      <TableCell component="th" scope="row">
-                        {historyRow.date}
-                      </TableCell>
-                      <TableCell>{historyRow.customerId}</TableCell>
-                      <TableCell align="right">{historyRow.amount}</TableCell>
-                      <TableCell align="right">
-                        {Math.round(historyRow.amount * row.price * 100) / 100}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
+            <div style={{ display: 'flex', flex: 1, width: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ paddingBottom: 10 }}>
+                <Button variant="outlined" color="primary" onClick={handleClickOpen}>
+                  Visualizar Imagem
+                </Button>
+                <SimpleDialog open={openImage} imagem={props.row.image} onClose={handleClose} />
+
+              </div>
+            </div>
           </Collapse>
         </TableCell>
       </TableRow>
@@ -98,52 +103,34 @@ function Row(props) {
   );
 }
 
-Row.propTypes = {
-  row: PropTypes.shape({
-    calories: PropTypes.number.isRequired,
-    carbs: PropTypes.number.isRequired,
-    fat: PropTypes.number.isRequired,
-    history: PropTypes.arrayOf(
-      PropTypes.shape({
-        amount: PropTypes.number.isRequired,
-        customerId: PropTypes.string.isRequired,
-        date: PropTypes.string.isRequired,
-      }),
-    ).isRequired,
-    name: PropTypes.string.isRequired,
-    price: PropTypes.number.isRequired,
-    protein: PropTypes.number.isRequired,
-  }).isRequired,
-};
 
-const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0, 3.99),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3, 4.99),
-  createData('Eclair', 262, 16.0, 24, 6.0, 3.79),
-  createData('Cupcake', 305, 3.7, 67, 4.3, 2.5),
-  createData('Gingerbread', 356, 16.0, 49, 3.9, 1.5),
-];
 
-export default function Tabela() {
+const Tabela = (props) => {
+  const [tabelinha, setTabela] = React.useState('');
+
+  useEffect(() => {
+    setTabela(props);
+  }, [props, tabelinha]);
   return (
     <TableContainer component={Paper}>
       <Table aria-label="collapsible table">
         <TableHead>
           <TableRow>
             <TableCell />
-            <TableCell>Dessert (100g serving)</TableCell>
-            <TableCell align="right">Calories</TableCell>
-            <TableCell align="right">Fat&nbsp;(g)</TableCell>
-            <TableCell align="right">Carbs&nbsp;(g)</TableCell>
-            <TableCell align="right">Protein&nbsp;(g)</TableCell>
+            <TableCell>Câmera</TableCell>
+            <TableCell align="right">Horário</TableCell>
+            <TableCell align="right">Data</TableCell>
+            <TableCell align="right">Id</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <Row key={row.name} row={row} />
+          {props.rows.map((row, index) => (
+            <Row key={index} row={row} />
           ))}
         </TableBody>
       </Table>
     </TableContainer>
   );
 }
+
+export default Tabela;
