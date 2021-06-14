@@ -70,8 +70,8 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
     count = 0
     success = True
     inicio = timeit.default_timer()
-    hora_inicial = datetime.datetime.strptime(CONFIG['time']['start'], "%H:%M:%S").time()
-    hora_final = datetime.datetime.strptime(CONFIG['time']['end'], "%H:%M:%S").time()
+    hora_inicial = datetime.datetime.strptime(CONFIG['time']['init'], "%H:%M:%S").time()
+    hora_final = datetime.datetime.strptime(CONFIG['time']['finish'], "%H:%M:%S").time()
     
     # thread = ThreadMqtt(mqtt, CONFIG)
     # thread.start()
@@ -126,6 +126,7 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
                 thread = ThreadMqtt(frame, mqtt, CONFIG, 0, True)
                 thread.start()
                 print("Quebra de lockdown detectada publicada no topico: ", CONFIG['topics']['lockdown'] )
+                inicio = timeit.default_timer()
 
             '''
             # boddy_classifier 
@@ -136,8 +137,7 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
                 cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
                 print("Quebra de lockdown detectada: frame salvo")
             '''
-            inicio = timeit.default_timer()
-        print(fps._numFrames)
+        #print(fps._numFrames)
         count += 1
         # show the output frame
         cv.imshow("Frame", frame)
