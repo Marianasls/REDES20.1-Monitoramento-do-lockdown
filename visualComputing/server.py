@@ -20,7 +20,7 @@ def main():
     mqtt = Mqtt(CONFIG['mqtt']['host'], CONFIG['mqtt']['port'], CONFIG['mqtt']['device_id'], CONFIG['mqtt']['device_username'], CONFIG['mqtt']['device_password'])
     
     # se increve para receber o horário que será enviado do cliente para período de lockdown
-    # receive_time(mqtt) necessario rodar em um thread separada
+    # receive_time(mqtt) # necessario rodar em um thread separada
 
     # inicia sensor da câmera e publica frames nos tópicos definidos em CONFIG
     inicio = timeit.default_timer()
