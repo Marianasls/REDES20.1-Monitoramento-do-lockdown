@@ -116,13 +116,14 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
                 ( hora_inicial > hora_final and ( hora_inicial <= agora or agora <= hora_final) )#o horaario definido começa em um dia e acaaba no proximo, por exemplo 18:00:00 as 02:00:00
             )
            ):
+            # print('teste')
             image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
             faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
             if len(faces) > 0:
                 for(x,y,w,h) in faces:
                     cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
                 cv.imwrite( imgDirectory+slash+"lockdown"+slash+"frame%f.jpg" % count, frame)
-                thread = ThreadMqtt(frame, mqtt, CONFIG)
+                thread = ThreadMqtt(frame, mqtt, CONFIG, 0, True)
                 thread.start()
                 print("Quebra de lockdown detectada publicada no topico: ", CONFIG['topics']['lockdown'] )
 

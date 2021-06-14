@@ -7,21 +7,25 @@ import timeit
 import datetime
 import time
 import io
-import saveImage as saveImg
+# import saveImage as saveImg
 
 class ThreadMqtt(Thread):
     
-    def __init__(self, frame, mqtt, CONFIG, count=0):
+    def __init__(self, frame, mqtt, CONFIG, count=0, lockdown = False):
         Thread.__init__(self)
         self.frame = frame
         self.mqtt = mqtt
         self.CONFIG = CONFIG
         self.count = count
-
+        self.lockdown = lockdown
 
     def run(self):
         message = self.imageToPublishableObj(self.frame)
-        self.mqtt.publisher(self.CONFIG['topics']['aovivo'], message, self.CONFIG['mqtt']['qos'] )
+        if(self.lockdown):
+            self.mqtt.publisher(self.CONFIG['topics']['lockdown'], message, self.CONFIG['mqtt']['qos'] )
+        else:
+            self.mqtt.publisher(self.CONFIG['topics']['aovivo'], message, self.CONFIG['mqtt']['qos'] )
+            
           
     def imageToPublishableObj(self, frame):
         # return frame.tolist()

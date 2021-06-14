@@ -8,8 +8,8 @@
         "qos": 0
     },
     "topics": {
-        "aovivo": "monitoramento/aovivo",
-        "lockdown": "monitoramento/lockdown",
+        "aovivo": "monitoramento/aovivo/2",
+        "lockdown": "monitoramento/lockdown/2",
         "hora": "config/hora"
     },
     "video": "Festival-cultura-japonesa-SP.mp4",
