@@ -1,7 +1,7 @@
 {
     "mqtt": {
-        "host": "node02.myqtthub.com",
-        "port": 1883,
+        "host": "45.167.218.51",
+        "port": 8684,
         "device_id": "camera2",
         "device_username": "tombacity",
         "device_password": "tombacity",

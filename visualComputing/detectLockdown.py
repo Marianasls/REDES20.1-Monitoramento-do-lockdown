@@ -61,9 +61,9 @@ def imageToPublishableObj(frame):
     # return frame.tolist()
     np_array_RGB = opencv2matplotlib(frame)
     image = Image.fromarray(np_array_RGB)
-    # return pil_image_to_byte_array(image)
+    return pil_image_to_byte_array(image)
     byte_array = pil_image_to_byte_array(image)
-    return {'date': get_now_string(), 'data': str(byte_array) }
+    #return {'date': get_now_string(), 'data': str(byte_array) }
 
 def extractImages(mqtt, type=1, imgDirectory = 'frames'):
     face_classifier = openClassifier()
@@ -94,9 +94,9 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
         else : 
             # inicio = timeit.default_timer()
             frame = video.read()
-            frame = imutils.resize(frame, width=600)
             # fim = timeit.default_timer()
             # print('duracao da captura do frame pela camera: %f' % (fim - inicio))
+        frame = imutils.resize(frame, width=300, height=300)
 
         cv.imwrite( imgDirectory+slash+"frame%f.jpg" % count, frame)
         decorrido = timeit.default_timer()
