@@ -70,6 +70,9 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
     count = 0
     success = True
     inicio = timeit.default_timer()
+    hora_inicial = datetime.datetime.strptime(CONFIG['time']['start'], "%H:%M:%S").time()
+    hora_final = datetime.datetime.strptime(CONFIG['time']['end'], "%H:%M:%S").time()
+    
     # thread = ThreadMqtt(mqtt, CONFIG)
     # thread.start()
     
@@ -105,9 +108,14 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
         thread.start()
         # fim = timeit.default_timer()
         # print('duracao da conversão do frame: %f' % (fim - inicio))
-        print("frame publicado no topico: ", CONFIG['topics']['aovivo'])
-
-        if( decorrido - inicio > 3):
+        # print("frame publicado no topico: ", CONFIG['topics']['aovivo'])
+        agora = datetime.datetime.now().time()
+        if( decorrido - inicio >= 3
+           and ( 
+                ( hora_inicial < hora_final and hora_inicial <= agora <= hora_final) or #o horario definido dentro do mesmo dia, por exemplo 10:00:00 as 22:00:00
+                ( hora_inicial > hora_final and ( hora_inicial <= agora or agora <= hora_final) )#o horaario definido começa em um dia e acaaba no proximo, por exemplo 18:00:00 as 02:00:00
+            )
+           ):
             image_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
             faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
             if len(faces) > 0:
