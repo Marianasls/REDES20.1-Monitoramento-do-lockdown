@@ -24,9 +24,8 @@ class LogController {
         return 'nao foi encontrado o id'
     }
 
-    deteccao({params}){
-        const logReconhecimento = LogsReconhecimento.findBy('id', params.id)
-        const nomeArquivo = logReconhecimento.nomeArquivo
+    async deteccao({params}){
+        const {nomeArquivo} = await LogsReconhecimento.findBy('id', params.id)
         if(nomeArquivo)
             return nomeArquivo
         return 'nao há logs com o id informado'
