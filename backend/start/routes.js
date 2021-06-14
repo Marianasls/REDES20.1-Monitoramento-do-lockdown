@@ -28,4 +28,8 @@ Route.patch('/designarTopico/:id', 'UsuarioController.designarTopico')
 
 Route.post('/login', 'AutenticacaoController.autenticar')
 
-Route.get('topicos', 'TopicoController.exibirTopicos')
+Route.get('/topicos', 'TopicoController.exibirTopicos')
+
+Route.post('/cadastrarLog', 'LogController.logDeDeteccao')
+
+Route.post('/ArquivoDeteccao/:id', 'LogController.deteccao')
