@@ -24,7 +24,7 @@ Route.post('/cadastrarTopico', 'TopicoController.cadastrarTopico')
 
 Route.post('/cadastrarUsuario', 'UsuarioController.cadastrarUsuario')
 
-Route.post('/designarTopico', 'UsuarioController.designarTopico')
+Route.patch('/designarTopico/:id', 'UsuarioController.designarTopico')
 
 Route.post('/login', 'AutenticacaoController.autenticar')
 

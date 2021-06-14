@@ -10,17 +10,15 @@ class UsuarioController {
         return usuario
     }
 
-    async designarTopico({request}){
-        const idTopico = request.only(['id_topico'])
-        const email = request.only(['email'])
-        const usuario = Usuario.findOrFail(email)
+    async designarTopico({request, params}){
+        const dataToUpdate = request.all()
+        const usuario = await Usuario.findBy('id',params.id)
         if(usuario){
-            usuario.id_topico = idTopico
-            if(await usuario.save())
-                return usuario
+            usuario.merge({...dataToUpdate})
+            await usuario.save()
+            return usuario
         }
-        
-       
+        return "nao foi encontrado o cadastro"     
     }
 }
 
