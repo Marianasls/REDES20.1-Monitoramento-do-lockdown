@@ -83,7 +83,7 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
     fps = FPS().start()
 
     while success:
-        # time.sleep(0.0001)
+        time.sleep(1)
         if type == 1:
             # inicio = timeit.default_timer()
             # video.set(cv.CAP_PROP_POS_MSEC,(count *1000)) #por segundo
@@ -106,6 +106,9 @@ def extractImages(mqtt, type=1, imgDirectory = 'frames'):
         # inicio = timeit.default_timer()
         thread = ThreadMqtt(frame, mqtt, CONFIG)
         thread.start()
+        
+        # message = imageToPublishableObj(frame)
+        # mqtt.publisher(CONFIG['topics']['lockdown'], message, CONFIG['mqtt']['qos'] )
         # fim = timeit.default_timer()
         # print('duracao da conversão do frame: %f' % (fim - inicio))
         # print("frame publicado no topico: ", CONFIG['topics']['aovivo'])
